@@ -1,22 +1,9 @@
-from pprint import pprint
-import hashlib
-import time
+from block import Block
 
-# Create an empty blockchain
-chain = []
+block1 = Block("t1", 0)
+block2 = Block("t2", 0)
+block3 = Block("t3", 0)
 
-def compute_hash(block: dict) -> str:
-    return hashlib.sha256(str(block).encode()).hexdigest()
-
-def add_block(tx_data: str):
-    global chain
-    prev_hash = chain[-1]["hash"] if len(chain) > 0 else "0" * 64
-    block = {"transaction": tx_data, "prev_hash": prev_hash,
-             "nonce": 0, "timestamp": time.time()}
-    block["hash"] = compute_hash(block)
-    chain.append(block)
-
-while True:
-    tx_data = input("Transaction data: ")
-    add_block(tx_data)
-    pprint(chain)
+print(block1.__dict__)
+print(block2.__dict__)
+print(block3.__dict__)
