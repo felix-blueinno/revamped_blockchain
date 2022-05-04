@@ -1,11 +1,14 @@
 import json
 from flask import Flask, request
 from blockchain import Blockchain
+from typing import List
+from constants import USER_DATA_DIR
+from user import User
 
 
 class FlaskServer:
     def __init__(self, chain: Blockchain,
-                 users: list,
+                 users: List[User],
                  server_name: str = "app",
                  port: int = 8000,):
         self.chain = chain
@@ -65,15 +68,19 @@ class FlaskServer:
                 if not user_data.get(field):
                     return {"result": "Invalid user data"}, 400
 
-            username = user_data['username']
-            password = user_data['password']
+            user = User(user_data['username'], user_data['password'])
 
             for u in self.users:
-                if u['username'] == username:
+                if u.username == user.username:
                     return {"result": "User already exists"}, 400
 
-            user = {'username': username, 'password': password}
             self.users.append(user)
+
+            file_path = f"{USER_DATA_DIR}/{user.username}.json"
+            file = open(file_path, 'w')
+            file.write(json.dumps(user.__dict__, indent=4))
+            file.close()
+
             return {"result": "User registered successfully"}, 200
 
         @app.route('/login', methods=['POST'])
