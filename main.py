@@ -1,3 +1,4 @@
+from typing import List
 from flask import Flask, request
 from blockchain import Blockchain
 from flask import Flask
@@ -5,6 +6,7 @@ import json
 
 app = Flask("app name")
 chain = Blockchain()
+users: List[dict] = []
 
 
 @app.route("/")
@@ -49,6 +51,45 @@ def mine():
 
     block_added = chain.mine()
     return {'result': block_added}, 200
+
+
+@app.route('/create_user', methods=['POST'])
+def create_user():
+    user_data = request.get_json()
+    required_fields = ['username', 'password']
+    for field in required_fields:
+        if not user_data.get(field):
+            return {"result": "Invalid user data"}, 400
+
+    username = user_data['username']
+    password = user_data['password']
+
+    for u in users:
+        if u['username'] == username:
+            return {"result": "User already exists"}, 400
+
+    user = {'username': username, 'password': password}
+    users.append(user)
+    return {"result": "User registered successfully"}, 200
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    user_data = request.get_json()
+    required_fields = ['username', 'password']
+    for field in required_fields:
+        if not user_data.get(field):
+            return {"result": "Invalid user data"}, 400
+
+    username = user_data['username']
+    password = user_data['password']
+
+    for user in users:
+        if user['username'] == username and user[
+                'password'] == password:
+            return {"result": "User logged in successfully"}, 200
+
+    return {"result": "Invalid username or password"}, 400
 
 
 chain.add_transaction("tx1")
