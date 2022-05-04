@@ -1,9 +1,12 @@
 from block import Block
+from blockchain import Blockchain
 
-block1 = Block("t1", 0)
-block2 = Block("t2", 0)
-block3 = Block("t3", 0)
+chain = Blockchain()
 
-print(block1.__dict__)
-print(block2.__dict__)
-print(block3.__dict__)
+block = Block(transaction='tx1', nonce=0, prev_hash=chain.chain[-1].hash )
+proof = block.compute_hash()
+
+chain.add_block(block,  proof +'hey!' )
+chain.add_block(block,  proof)
+
+chain.show()
