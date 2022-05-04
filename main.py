@@ -1,5 +1,6 @@
 from typing import List
 from flask import Flask, request
+from block import Block
 from blockchain import Blockchain
 from flask import Flask
 import json
@@ -16,6 +17,16 @@ if not os.path.exists(CHAIN_DATA_DIR):
 
     chain.add_transaction('tx1')
     chain.mine()
+else:
+    for filename in sorted(os.listdir(CHAIN_DATA_DIR)):
+        with open(f'{CHAIN_DATA_DIR}/{filename}') as b_file:
+            data = json.load(b_file)
+
+            block = Block(data['transaction'], data['nonce'],
+                          data['prev_hash'], data['timestamp'])
+
+            proof = data['hash']
+            chain.add_block(block, proof)
 
 
 @app.route("/")
@@ -100,13 +111,5 @@ def login():
 
     return {"result": "Invalid username or password"}, 400
 
-
-chain.add_transaction("tx1")
-chain.mine()
-chain.show()
-
-chain.add_transaction("tx2")
-chain.mine()
-chain.show()
 
 app.run(host="0.0.0.0", port=8000)

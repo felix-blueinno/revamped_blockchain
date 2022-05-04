@@ -3,10 +3,10 @@ import hashlib
 
 
 class Block:
-    def __init__(self, transaction: str, nonce: int, prev_hash: str = "0"):
+    def __init__(self, transaction: str, nonce: int, prev_hash: str = "0", timestamp=0):
         self.transaction = transaction
         self.nonce = nonce
-        self.timestamp = time.time()
+        self.timestamp = timestamp if timestamp != 0 else time.time()
         self.prev_hash = prev_hash
         self.hash: str = ""
 
