@@ -1,8 +1,9 @@
 import json
+import os
 from pprint import pprint
 from typing import List
 from block import Block
-from constants import CHAIN_DATA_DIR, FILE_HEADERS
+from constants import CHAIN_DATA_DIR, FILE_HEADERS, UNMINED_DATA_DIR
 
 
 class Blockchain:
@@ -24,6 +25,8 @@ class Blockchain:
 
             if block in self.unmined_chain:
                 self.unmined_chain.remove(block)
+                block_id = len(self.chain)
+                os.remove(f"{UNMINED_DATA_DIR}/{block_id}.json")
 
             print(f"Block #{len(self.chain)-1} appended")
             return True
@@ -37,6 +40,13 @@ class Blockchain:
     def add_transaction(self, transaction: str):
         unmined_block = Block(transaction=transaction, nonce=0)
         self.unmined_chain.append(unmined_block)
+
+        content = json.dumps(unmined_block.__dict__, indent=4)
+
+        file_id = len(self.chain) + len(self.unmined_chain)
+        file = open(f'{UNMINED_DATA_DIR}/{file_id}.json', 'w')
+        file.write(content)
+        file.close()
 
     def mine(self, genesis_block=False) -> bool:
         if not self.unmined_chain:

@@ -5,11 +5,14 @@ from blockchain import Blockchain
 from flask import Flask
 import json
 import os
-from constants import CHAIN_DATA_DIR
+from constants import CHAIN_DATA_DIR, UNMINED_DATA_DIR
 
 app = Flask("app name")
 chain = Blockchain()
 users: List[dict] = []
+
+if not os.path.exists(UNMINED_DATA_DIR):
+    os.mkdir(UNMINED_DATA_DIR)
 
 if not os.path.exists(CHAIN_DATA_DIR):
     os.mkdir(CHAIN_DATA_DIR)
