@@ -4,6 +4,7 @@ from blockchain import Blockchain
 from typing import List
 from constants import USER_DATA_DIR
 from user import User
+from nodes import Nodes
 
 
 class FlaskServer:
@@ -13,6 +14,7 @@ class FlaskServer:
                  port: int = 8000,):
         self.chain = chain
         self.users = users
+        self.nodes = Nodes()
 
         self.server_name = server_name
         self.port = port
@@ -22,7 +24,24 @@ class FlaskServer:
 
         @app.route("/")
         def homepage():
+            self.nodes.root_url = request.url_root
+            self.nodes.knock_peers()
+
             return f'we have {len(self.chain.chain)} blocks now.'
+
+        @app.route('/peers', methods=['GET'])
+        def get_peers():
+            return {"peers": list(self.nodes.peers)}
+
+        @app.route('/register_node', methods=['POST'])
+        def register_node():
+
+            if not request.get_json().get('node_address'):
+                return {"result": "Failed. Missing node address"}, 400
+
+            node_address = request.get_json()['node_address']
+            self.nodes.add_node(node_address)
+            return get_peers()
 
         @app.route('/chain', methods=['GET'])
         def get_chain():
