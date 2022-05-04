@@ -137,13 +137,17 @@ class FlaskServer:
 
                     if json['length'] > len(self.chain.chain):
                         dicts = json['chain']
-                        new_chain = Blockchain()
+                        new_blocks: List[Block] = []
+                        new_hashes: List[str] = []
+
                         for dict in dicts:
                             block = Block(transaction=dict['transaction'], nonce=dict['nonce'],
                                           prev_hash=dict['prev_hash'], timestamp=dict['timestamp'])
-                            new_chain.add_block(block, dict['hash'])
 
-                        self.chain = new_chain
+                            new_blocks.append(block)
+                            new_hashes.append(dict['hash'])
+
+                        self.chain.replace_chain(new_blocks, new_hashes)
                         break
                     else:
                         # TODO: Check if both chains are identical

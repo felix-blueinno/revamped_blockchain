@@ -115,3 +115,10 @@ class Blockchain:
 
                     proof = data['hash']
                     self.add_block(block, proof)
+
+    def replace_chain(self, chain: List[Block], hashes: List[str]):
+
+        self.chain.clear()
+
+        for i in range(len(chain)):
+            self.add_block(chain[i], hashes[i])
