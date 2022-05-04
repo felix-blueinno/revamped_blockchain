@@ -39,7 +39,6 @@ class Blockchain:
             return 'No unmined transaction'
 
         block = self.unmined_chain[0]
-        block.prev_hash = self.chain[-1].hash
 
         if not genesis_block:
             block.prev_hash = self.chain[-1].hash
