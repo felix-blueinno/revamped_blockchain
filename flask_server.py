@@ -1,10 +1,12 @@
 import json
 from flask import Flask, request
+from block import Block
 from blockchain import Blockchain
 from typing import List
 from constants import USER_DATA_DIR
 from user import User
 from nodes import Nodes
+import requests
 
 
 class FlaskServer:
@@ -26,6 +28,8 @@ class FlaskServer:
         def homepage():
             self.nodes.root_url = request.url_root
             self.nodes.knock_peers()
+
+            self.consensus()
 
             return f'we have {len(self.chain.chain)} blocks now.'
 
@@ -121,3 +125,29 @@ class FlaskServer:
             return {"result": "Invalid username or password"}, 400
 
         app.run(host="0.0.0.0", port=8000)
+
+    def consensus(self):
+        for node in self.nodes.peers:
+            if node == self.nodes.root_url:
+                continue
+            try:
+                response = requests.get(node + 'chain')
+                if response.status_code == 200:
+                    json = response.json()
+
+                    if json['length'] > len(self.chain.chain):
+                        dicts = json['chain']
+                        new_chain = Blockchain()
+                        for dict in dicts:
+                            block = Block(transaction=dict['transaction'], nonce=dict['nonce'],
+                                          prev_hash=dict['prev_hash'], timestamp=dict['timestamp'])
+                            new_chain.add_block(block, dict['hash'])
+
+                        self.chain = new_chain
+                        break
+                    else:
+                        # TODO: Check if both chains are identical
+                        pass
+            except Exception as e:
+                print("Exception: ", e)
+                self.nodes.failed_connect_peers.add(node)
