@@ -161,3 +161,5 @@ cython_debug/
 
 
 chaindata/
+unmined_data/
+user_data/
