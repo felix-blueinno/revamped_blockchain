@@ -1,5 +1,6 @@
 import os
 from constants import NODES_FILENAME, MASTER_NODE
+import requests
 
 
 class Nodes:
@@ -24,4 +25,27 @@ class Nodes:
                 f.write(peer + ',')
 
     def knock_peers(self):
-        pass
+        for peer in self.peers:
+            try:
+                response = requests.get(f'{peer}/peers')
+                if response.status_code == 200:
+                    peers = response.json()['peers']
+                    for peer in peers:
+                        self.add_node(peer)
+                    break
+
+            except Exception as e:
+                print("Exception occurs: ", e)
+                self.failed_connect_peers.add(peer)
+
+        for peer in self.peers:
+            try:
+                response = requests.post(peer + 'register_node',
+                                         json={"node_address": self.root_url})
+
+                if response.status_code != 200:
+                    self.failed_connect_peers.add(peer)
+
+            except Exception as e:
+                print(e)
+                self.failed_connect_peers.add(peer)
