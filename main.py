@@ -11,33 +11,6 @@ app = Flask("app name")
 chain = Blockchain()
 users: List[dict] = []
 
-if not os.path.exists(UNMINED_DATA_DIR):
-    os.mkdir(UNMINED_DATA_DIR)
-else:
-    for filename in sorted(os.listdir(UNMINED_DATA_DIR)):
-        with open(f'{UNMINED_DATA_DIR}/{filename}') as ub_file:
-            data = json.load(ub_file)
-            block = Block(data['transaction'], data['nonce'],
-                          data['prev_hash'], data['timestamp'])
-            chain.unmined_chain.append(block)
-
-if not os.path.exists(CHAIN_DATA_DIR):
-    os.mkdir(CHAIN_DATA_DIR)
-    chain.create_genesis_block()
-
-    chain.add_transaction('tx1')
-    chain.mine()
-else:
-    for filename in sorted(os.listdir(CHAIN_DATA_DIR)):
-        with open(f'{CHAIN_DATA_DIR}/{filename}') as b_file:
-            data = json.load(b_file)
-
-            block = Block(data['transaction'], data['nonce'],
-                          data['prev_hash'], data['timestamp'])
-
-            proof = data['hash']
-            chain.add_block(block, proof)
-
 
 @app.route("/")
 def homepage():

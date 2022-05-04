@@ -13,6 +13,9 @@ class Blockchain:
         self.chain: List[Block] = []
         self.unmined_chain: List[Block] = []
 
+        self.init_unmined_chain()
+        self.init_mined_chain()
+
     def create_genesis_block(self):
         self.add_transaction("genesis_block")
         self.mine(genesis_block=True)
@@ -83,3 +86,32 @@ class Blockchain:
             pprint(block.__dict__)
         print(
             "+---------------------------------------------------------------------------")
+
+    def init_unmined_chain(self):
+        if not os.path.exists(UNMINED_DATA_DIR):
+            os.mkdir(UNMINED_DATA_DIR)
+        else:
+            for filename in sorted(os.listdir(UNMINED_DATA_DIR)):
+                with open(f'{UNMINED_DATA_DIR}/{filename}') as ub_file:
+                    data = json.load(ub_file)
+                    block = Block(data['transaction'], data['nonce'],
+                                  data['prev_hash'], data['timestamp'])
+                    self.chain.unmined_chain.append(block)
+
+    def init_mined_chain(self):
+        if not os.path.exists(CHAIN_DATA_DIR):
+            os.mkdir(CHAIN_DATA_DIR)
+            self.create_genesis_block()
+
+        elif not os.listdir(CHAIN_DATA_DIR) == []:
+            all_files = sorted(os.listdir(CHAIN_DATA_DIR))
+            for filename in all_files:
+                with open(f'{CHAIN_DATA_DIR}/{filename}') as json_file:
+                    data = json.load(json_file)
+                    block = Block(data['transaction'],
+                                  data['nonce'],
+                                  data['prev_hash'],
+                                  data['timestamp'])
+
+                    proof = data['hash']
+                    self.add_block(block, proof)
