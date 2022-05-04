@@ -1,6 +1,8 @@
+import json
 from pprint import pprint
 from typing import List
 from block import Block
+from constants import CHAIN_DATA_DIR, FILE_HEADERS
 
 
 class Blockchain:
@@ -9,7 +11,6 @@ class Blockchain:
     def __init__(self):
         self.chain: List[Block] = []
         self.unmined_chain: List[Block] = []
-        self.create_genesis_block()
 
     def create_genesis_block(self):
         self.add_transaction("genesis_block")
@@ -19,6 +20,7 @@ class Blockchain:
         if self.verify_proof(block, proof):
             block.hash = proof
             self.chain.append(block)
+            self.save_block_file(block)
 
             if block in self.unmined_chain:
                 self.unmined_chain.remove(block)
@@ -53,6 +55,16 @@ class Blockchain:
 
         block_added = self.add_block(block, proof)
         return block_added
+
+    def save_block_file(self, block: Block):
+
+        block_id = len(self.chain)
+        content = json.dumps(block.__dict__, indent=4)
+
+        file_path = f"{CHAIN_DATA_DIR}/{FILE_HEADERS}{block_id}.json"
+        file = open(file_path, 'w')
+        file.write(content)
+        file.close()
 
     def show(self):
         print(

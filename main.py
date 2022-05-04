@@ -3,10 +3,19 @@ from flask import Flask, request
 from blockchain import Blockchain
 from flask import Flask
 import json
+import os
+from constants import CHAIN_DATA_DIR
 
 app = Flask("app name")
 chain = Blockchain()
 users: List[dict] = []
+
+if not os.path.exists(CHAIN_DATA_DIR):
+    os.mkdir(CHAIN_DATA_DIR)
+    chain.create_genesis_block()
+
+    chain.add_transaction('tx1')
+    chain.mine()
 
 
 @app.route("/")
