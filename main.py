@@ -13,6 +13,13 @@ users: List[dict] = []
 
 if not os.path.exists(UNMINED_DATA_DIR):
     os.mkdir(UNMINED_DATA_DIR)
+else:
+    for filename in sorted(os.listdir(UNMINED_DATA_DIR)):
+        with open(f'{UNMINED_DATA_DIR}/{filename}') as ub_file:
+            data = json.load(ub_file)
+            block = Block(data['transaction'], data['nonce'],
+                          data['prev_hash'], data['timestamp'])
+            chain.unmined_chain.append(block)
 
 if not os.path.exists(CHAIN_DATA_DIR):
     os.mkdir(CHAIN_DATA_DIR)
