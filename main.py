@@ -42,6 +42,15 @@ def new_transaction():
     return {"result": "Transaction added successfully"}, 200
 
 
+@app.route('/mine', methods=['GET'])
+def mine():
+    if not chain.unmined_chain:
+        return {'result': 'No unmined_blocks found'}, 200
+
+    block_added = chain.mine()
+    return {'result': block_added}, 200
+
+
 chain.add_transaction("tx1")
 chain.mine()
 chain.show()
