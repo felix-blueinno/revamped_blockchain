@@ -140,15 +140,25 @@ class FlaskServer:
                         new_blocks: List[Block] = []
                         new_hashes: List[str] = []
 
+                        prev_hash = '0'
+                        valid_chain = True
+
                         for dict in dicts:
                             block = Block(transaction=dict['transaction'], nonce=dict['nonce'],
                                           prev_hash=dict['prev_hash'], timestamp=dict['timestamp'])
 
+                            # check validity of the chain:
+                            if prev_hash != block.prev_hash and dict['hash'] != block.compute_hash():
+                                valid_chain = False
+                                break
+
                             new_blocks.append(block)
                             new_hashes.append(dict['hash'])
+                            prev_hash = dict['hash']
 
-                        self.chain.replace_chain(new_blocks, new_hashes)
-                        break
+                        if valid_chain:
+                            self.chain.replace_chain(new_blocks, new_hashes)
+                            break
                     else:
                         # TODO: Check if both chains are identical
                         pass
