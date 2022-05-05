@@ -112,7 +112,11 @@ class Blockchain:
                                   data['timestamp'])
 
                     proof = data['hash']
-                    self.add_block(block, proof)
+                    added = self.add_block(block, proof)
+                    if not added:
+                        print(f"{filename} is tampered")
+                        # TODO:
+                        break
 
     def replace_chain(self, chain: List[Block], hashes: List[str]):
 
