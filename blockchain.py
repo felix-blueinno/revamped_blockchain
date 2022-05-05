@@ -52,8 +52,6 @@ class Blockchain:
         file.close()
 
     def mine(self, genesis_block=False) -> bool:
-        if not self.unmined_chain:
-            return 'No unmined transaction'
 
         block = self.unmined_chain[0]
 
@@ -96,7 +94,7 @@ class Blockchain:
                     data = json.load(ub_file)
                     block = Block(data['transaction'], data['nonce'],
                                   data['prev_hash'], data['timestamp'])
-                    self.chain.unmined_chain.append(block)
+                    self.unmined_chain.append(block)
 
     def init_mined_chain(self):
         if not os.path.exists(CHAIN_DATA_DIR):
