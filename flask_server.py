@@ -81,7 +81,16 @@ class FlaskServer:
                 return {'result': 'No unmined_blocks found'}, 200
 
             block_added = self.chain.mine()
-            return {'result': block_added}, 200
+
+            if block_added:
+                self.announce_new_block()
+                return {'result': 'Block added successfully'}, 200
+
+            return {'result': 'Block not added'}, 400
+
+        @app.route('/update_chain', methods=['POST'])
+        def update_chain():
+            self.consensus()
 
         @app.route('/create_user', methods=['POST'])
         def create_user():
@@ -162,6 +171,18 @@ class FlaskServer:
                     else:
                         # TODO: Check if both chains are identical
                         pass
+            except Exception as e:
+                print("Exception: ", e)
+                self.nodes.failed_connect_peers.add(node)
+
+    def announce_new_block(self):
+        for node in self.nodes.peers:
+            if node == self.nodes.root_url:
+                continue
+            try:
+                response = requests.post(node + 'update_chain')
+                if response.status_code == 200:
+                    print("Announced to node: ", node)
             except Exception as e:
                 print("Exception: ", e)
                 self.nodes.failed_connect_peers.add(node)
