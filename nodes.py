@@ -25,18 +25,21 @@ class Nodes:
                 f.write(peer + ',')
 
     def knock_peers(self):
+        new_peers = set()
         for peer in self.peers:
             try:
                 response = requests.get(f'{peer}/peers')
                 if response.status_code == 200:
                     peers = response.json()['peers']
                     for peer in peers:
-                        self.add_node(peer)
+                        new_peers.add(peer)
                     break
 
             except Exception as e:
                 print("Exception occurs: ", e)
                 self.failed_connect_peers.add(peer)
+
+        self.peers.union(new_peers)
 
         for peer in self.peers:
             try:
