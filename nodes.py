@@ -39,7 +39,7 @@ class Nodes:
                 print("Exception occurs: ", e)
                 self.failed_connect_peers.add(peer)
 
-        self.peers.union(new_peers)
+        self.peers = self.peers.union(new_peers)
 
         for peer in self.peers:
             try:
