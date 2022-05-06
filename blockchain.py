@@ -26,10 +26,18 @@ class Blockchain:
             self.chain.append(block)
             self.save_block_file(block)
 
-            if block in self.unmined_chain:
-                self.unmined_chain.remove(block)
-                block_id = len(self.chain)
-                os.remove(f"{UNMINED_DATA_DIR}/{block_id}.json")
+            for ub in self.unmined_chain:
+                if block.timestamp == ub.timestamp:
+                    self.unmined_chain.remove(ub)
+                    break
+
+            for filename in os.listdir(UNMINED_DATA_DIR):
+                # load file as json
+                with open(f'{UNMINED_DATA_DIR}/{filename}') as ub_file:
+                    data = json.load(ub_file)
+                    if data['timestamp'] == block.timestamp:
+                        os.remove(f'{UNMINED_DATA_DIR}/{filename}')
+                        break
 
             print(f"Block #{len(self.chain)-1} appended")
             return True
@@ -40,8 +48,10 @@ class Blockchain:
     def verify_proof(self, block: Block, hash_proof: str):
         return hash_proof == block.compute_hash() and hash_proof.startswith('0' * self.DIFFICULTY)
 
-    def add_transaction(self, transaction: str):
-        unmined_block = Block(transaction=transaction, nonce=0)
+    def add_transaction(self, transaction: str, timestamp: float = 0):
+        unmined_block = Block(transaction=transaction,
+                              nonce=0,
+                              timestamp=timestamp,)
         self.unmined_chain.append(unmined_block)
 
         content = json.dumps(unmined_block.__dict__, indent=4)
@@ -124,3 +134,15 @@ class Blockchain:
 
         for i in range(len(chain)):
             self.add_block(chain[i], hashes[i])
+
+    def replace_unmined_chain(self, unmined_list: List[dict]):
+        self.unmined_chain.clear()
+
+        for file in os.listdir(UNMINED_DATA_DIR):
+            os.remove(os.path.join(
+                UNMINED_DATA_DIR, file))
+
+        for unmined_block in unmined_list:
+            tx_data = unmined_block['transaction']
+            timestamp = unmined_block['timestamp']
+            self.add_transaction(tx_data, timestamp)

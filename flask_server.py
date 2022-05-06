@@ -61,6 +61,8 @@ class FlaskServer:
 
         @app.route('/new_transaction', methods=['POST'])
         def new_transaction():
+            self.consensus()
+
             tx_data = request.get_json()
             required_fields = ['sender', 'amount', 'recipient']
             for field in required_fields:
@@ -73,6 +75,7 @@ class FlaskServer:
 
             transaction = f'{sender}, {amount}, {recipient}'
             self.chain.add_transaction(transaction)
+            self.announce()
             return {"result": "Transaction added successfully"}, 200
 
         @app.route('/mine', methods=['GET'])
@@ -83,7 +86,7 @@ class FlaskServer:
             block_added = self.chain.mine()
 
             if block_added:
-                self.announce_new_block()
+                self.announce()
                 return {'result': 'Block added successfully'}, 200
 
             return {'result': 'Block not added'}, 400
@@ -91,6 +94,7 @@ class FlaskServer:
         @app.route('/update_chain', methods=['POST'])
         def update_chain():
             self.consensus()
+            return {'result': 'Updating'}, 200
 
         @app.route('/create_user', methods=['POST'])
         def create_user():
@@ -142,10 +146,10 @@ class FlaskServer:
             try:
                 response = requests.get(node + 'chain')
                 if response.status_code == 200:
-                    json = response.json()
+                    peer_json = response.json()
 
-                    if json['length'] > len(self.chain.chain):
-                        dicts = json['chain']
+                    if peer_json['length'] >= len(self.chain.chain):
+                        dicts = peer_json['chain']
                         new_blocks: List[Block] = []
                         new_hashes: List[str] = []
 
@@ -167,7 +171,20 @@ class FlaskServer:
 
                         if valid_chain:
                             self.chain.replace_chain(new_blocks, new_hashes)
+
+                            response = requests.get(node + 'unmined_blocks')
+                            if response.status_code == 200:
+                                ub_json = response.json()
+                                peer_ub_list = ub_json['unmined blocks']
+
+                            if peer_json['length'] > len(self.chain.chain):
+                                self.chain.replace_unmined_chain(peer_ub_list)
+                            elif peer_json['length'] == len(self.chain.chain):
+                                if len(peer_ub_list) > len(self.chain.unmined_chain):
+                                    self.chain.replace_unmined_chain(
+                                        peer_ub_list)
                             break
+
                     else:
                         # TODO: Check if both chains are identical
                         pass
@@ -175,7 +192,7 @@ class FlaskServer:
                 print("Exception: ", e)
                 self.nodes.failed_connect_peers.add(node)
 
-    def announce_new_block(self):
+    def announce(self):
         for node in self.nodes.peers:
             if node == self.nodes.root_url:
                 continue
