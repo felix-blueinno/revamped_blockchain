@@ -44,8 +44,12 @@ class FlaskServer:
                 return {"result": "Failed. Missing node address"}, 400
 
             node_address = request.get_json()['node_address']
-            self.nodes.add_node(node_address)
-            return get_peers()
+
+            if "repl.co" in node_address:
+                self.nodes.add_node(node_address)
+                return get_peers(), 200
+            else:
+                return {"result": "Failed. We only accept repl node for now."}, 400
 
         @app.route('/chain', methods=['GET'])
         def get_chain():
