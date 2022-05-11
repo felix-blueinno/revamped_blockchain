@@ -39,12 +39,15 @@ class Nodes:
                 print("Exception occurs: ", e)
                 self.failed_connect_peers.add(peer)
 
-        self.peers = self.peers.union(new_peers)
+        for peer in new_peers:
+            self.add_node(peer)
 
         for peer in self.peers:
+            print("Knocking door of: ", peer)
             try:
                 response = requests.post(peer + 'register_node',
-                                         json={"node_address": self.root_url})
+                                         json={"node_address": self.root_url},
+                                         timeout=5)
 
                 if response.status_code != 200:
                     self.failed_connect_peers.add(peer)
