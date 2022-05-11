@@ -2,10 +2,9 @@ from __future__ import annotations
 
 
 class User:
-    def __init__(self, username: str, password: str, balance: float = 0):
+    def __init__(self, username: str, password: str):
         self.username = username
         self.password = password
-        self.balance = balance
 
     def withdraw(self):
         pass

@@ -17,7 +17,7 @@ class Blockchain:
         self.init_mined_chain()
 
     def create_genesis_block(self):
-        self.add_transaction("genesis_block")
+        self.add_transaction({'sender': '_', 'recipient': '_', 'amount': 0})
         self.mine(genesis_block=True)
 
     def add_block(self, block: Block, proof: str) -> bool:
@@ -48,7 +48,7 @@ class Blockchain:
     def verify_proof(self, block: Block, hash_proof: str):
         return hash_proof == block.compute_hash() and hash_proof.startswith('0' * self.DIFFICULTY)
 
-    def add_transaction(self, transaction: str, timestamp: float = 0):
+    def add_transaction(self, transaction: dict, timestamp: float = 0):
         unmined_block = Block(transaction=transaction,
                               nonce=0,
                               timestamp=timestamp,)

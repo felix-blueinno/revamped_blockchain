@@ -73,12 +73,7 @@ class FlaskServer:
                 if not tx_data.get(field):
                     return {"result": "Invalid transaction data"}, 400
 
-            sender = tx_data['sender']
-            amount = tx_data['amount']
-            recipient = tx_data['recipient']
-
-            transaction = f'{sender}, {amount}, {recipient}'
-            self.chain.add_transaction(transaction)
+            self.chain.add_transaction(tx_data)
             self.announce()
             return {"result": "Transaction added successfully"}, 200
 
@@ -135,11 +130,35 @@ class FlaskServer:
             password = user_data['password']
 
             for user in self.users:
-                if user['username'] == username and user[
-                        'password'] == password:
+                if user.username == username and user.password == password:
                     return {"result": "User logged in successfully"}, 200
 
             return {"result": "Invalid username or password"}, 400
+
+        @app.route('/get_balance', methods=['POST'])
+        def get_balance():
+            user_data = request.get_json()
+            print(user_data)
+            required_fields = ['username', 'password']
+            for field in required_fields:
+                if not user_data.get(field):
+                    return {"result": f"Missing field {field}"}, 400
+
+            with open(f"{USER_DATA_DIR}/{user_data['username']}.json", 'r') as f:
+                user = json.load(f)
+                f.close()
+            if user['password'] != user_data['password']:
+                return {"result": "Invalid password"}, 400
+
+            balance = 0
+            for block in self.chain.chain:
+                tx = block.transaction
+                if tx['sender'] == user_data['username']:
+                    balance -= tx['amount']
+                if tx['recipient'] == user_data['username']:
+                    balance += tx['amount']
+
+            return {"balance": balance}, 200
 
         app.run(host="0.0.0.0", port=8000)
 

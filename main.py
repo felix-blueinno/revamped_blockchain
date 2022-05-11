@@ -8,7 +8,7 @@ import json
 from user import User
 
 chain = Blockchain()
-users: List[dict] = []
+users: List[User] = []
 
 if not os.path.exists(USER_DATA_DIR):
     os.makedirs(USER_DATA_DIR)
@@ -17,11 +17,9 @@ else:
         file_path = f"{USER_DATA_DIR}/{filename}"
         with open(file_path, 'r') as f:
             user_data = json.loads(f.read())
-            user = User(user_data['username'],
-                        user_data['password'], user_data['balance'])
+            user = User(user_data['username'], user_data['password'])
 
             users.append(user)
-    print(users)
 
 server = FlaskServer(chain=chain, users=users)
 server.run()
