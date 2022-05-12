@@ -96,6 +96,16 @@ class FlaskServer:
                                 return {"result": "Failed. Insufficient balance."}, 400
                 else:
                     return {"result": response['result']}, 400
+            else:
+                # Simply check if password is correct in deposit case:
+                correct_password = False
+                for u in self.users:
+                    if u.username == tx_data['to'] and u.password == tx_data['password']:
+                        correct_password = True
+                        break
+
+                if not correct_password:
+                    return {"result": "Failed. Incorrect password."}, 400
 
             self.chain.add_transaction(tx_data)
             self.announce()
@@ -162,7 +172,6 @@ class FlaskServer:
         @app.route('/get_balance', methods=['POST'])
         def get_balance():
             user_data = request.get_json()
-            print(user_data)
             required_fields = ['username', 'password']
             for field in required_fields:
                 if not user_data.get(field):
