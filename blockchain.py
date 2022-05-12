@@ -17,7 +17,7 @@ class Blockchain:
         self.init_mined_chain()
 
     def create_genesis_block(self):
-        self.add_transaction({'sender': '_', 'recipient': '_', 'amount': 0})
+        self.add_transaction({'from': '_', 'to': '_', 'amount': 0})
         self.mine(genesis_block=True)
 
     def add_block(self, block: Block, proof: str) -> bool:

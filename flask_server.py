@@ -65,13 +65,37 @@ class FlaskServer:
 
         @app.route('/new_transaction', methods=['POST'])
         def new_transaction():
+
+            # Get the latest chain & unmined chain:
             self.consensus()
 
+            # Check presence of necessary fields:
             tx_data = request.get_json()
-            required_fields = ['sender', 'amount', 'recipient']
+            required_fields = ['from', 'amount', 'to', 'password']
             for field in required_fields:
                 if not tx_data.get(field):
-                    return {"result": "Invalid transaction data"}, 400
+                    return {"result": f"Missing field {field}"}, 400
+
+            # Call /get_balance internally and check if user has enough balance:
+            if tx_data['from'] != '_':
+                response = requests.post(self.nodes.root_url + 'get_balance', json={'username': tx_data['from'],
+                                                                                    'password': tx_data['password']})
+                if response.status_code == 200:
+                    balance = response.json()['balance']
+                    balance -= tx_data['amount']
+                    if balance < 0:
+                        return {"result": "Failed. Insufficient balance."}, 400
+
+                    # Make sure users won't declare multiple transactions that could lead to negative balance:
+                    for ub in self.chain.unmined_chain:
+                        tx = ub.transaction
+                        if tx['from'] == tx_data['from']:
+                            if balance >= tx_data['amount']:
+                                balance -= tx['amount']
+                            else:
+                                return {"result": "Failed. Insufficient balance."}, 400
+                else:
+                    return {"result": response['result']}, 400
 
             self.chain.add_transaction(tx_data)
             self.announce()
@@ -144,19 +168,21 @@ class FlaskServer:
                 if not user_data.get(field):
                     return {"result": f"Missing field {field}"}, 400
 
-            with open(f"{USER_DATA_DIR}/{user_data['username']}.json", 'r') as f:
-                user = json.load(f)
-                f.close()
-            if user['password'] != user_data['password']:
-                return {"result": "Invalid password"}, 400
+            user_found = False
+            for user in self.users:
+                if user.username == user_data['username'] and user.password == user_data['password']:
+                    balance = 0
+                    for block in self.chain.chain:
+                        tx = block.transaction
+                        if tx['from'] == user_data['username']:
+                            balance -= tx['amount']
+                        if tx['to'] == user_data['username']:
+                            balance += tx['amount']
+                    user_found = True
+                    break
 
-            balance = 0
-            for block in self.chain.chain:
-                tx = block.transaction
-                if tx['sender'] == user_data['username']:
-                    balance -= tx['amount']
-                if tx['recipient'] == user_data['username']:
-                    balance += tx['amount']
+            if not user_found:
+                return {"result": "User not found"}, 400
 
             return {"balance": balance}, 200
 
