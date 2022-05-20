@@ -10,10 +10,13 @@ import requests
 
 
 class FlaskServer:
-    def __init__(self, chain: Blockchain,
-                 users: List[User],
-                 server_name: str = "app",
-                 port: int = 8000,):
+    def __init__(
+        self,
+        chain: Blockchain,
+        users: List[User],
+        server_name: str = "app",
+        port: int = 8000,
+    ):
         self.chain = chain
         self.users = users
         self.nodes = Nodes()
@@ -24,13 +27,14 @@ class FlaskServer:
     def run(self):
         app = Flask("app name")
 
-        @app.route("/")
-        def homepage():
+        @app.before_first_request
+        def init():
             self.nodes.root_url = request.url_root
             self.nodes.knock_peers()
-
             self.consensus()
 
+        @app.route("/")
+        def homepage():
             return f'we have {len(self.chain.chain)} blocks now.'
 
         @app.route('/peers', methods=['GET'])
@@ -53,8 +57,10 @@ class FlaskServer:
 
         @app.route('/chain', methods=['GET'])
         def get_chain():
-            chain_dict = {"length": len(
-                self.chain.chain), "chain": self.chain.chain}
+            chain_dict = {
+                "length": len(self.chain.chain),
+                "chain": self.chain.chain
+            }
             return json.dumps(chain_dict, default=lambda obj: obj.__dict__)
 
         @app.route('/unmined_blocks', methods=['GET'])
@@ -78,8 +84,8 @@ class FlaskServer:
 
             # Call /get_balance internally and check if user has enough balance:
             if tx_data['from'] != '_':
-                response = requests.post(self.nodes.root_url + 'get_balance', json={'username': tx_data['from'],
-                                                                                    'password': tx_data['password']})
+                response = requests.post(f'http://127.0.0.1:{self.port}/' + 'get_balance', json={
+                                         'username': tx_data['from'], 'password': tx_data['password']})
                 if response.status_code == 200:
                     balance = response.json()['balance']
                     balance -= tx_data['amount']
@@ -215,8 +221,10 @@ class FlaskServer:
                         valid_chain = True
 
                         for dict in dicts:
-                            block = Block(transaction=dict['transaction'], nonce=dict['nonce'],
-                                          prev_hash=dict['prev_hash'], timestamp=dict['timestamp'])
+                            block = Block(transaction=dict['transaction'],
+                                          nonce=dict['nonce'],
+                                          prev_hash=dict['prev_hash'],
+                                          timestamp=dict['timestamp'])
 
                             # check validity of the chain:
                             if prev_hash != block.prev_hash and dict['hash'] != block.compute_hash():
