@@ -101,7 +101,7 @@ class FlaskServer:
                             else:
                                 return {"result": "Failed. Insufficient balance."}, 400
                 else:
-                    return {"result": response['result']}, 400
+                    return {"result": 'Unable to check balance'}, 400
             else:
                 # Simply check if password is correct in deposit case:
                 correct_password = False
