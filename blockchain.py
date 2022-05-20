@@ -46,7 +46,7 @@ class Blockchain:
             return False
 
     def verify_proof(self, block: Block, hash_proof: str):
-        return hash_proof == block.compute_hash() and hash_proof.startswith('0' * self.DIFFICULTY)
+        return hash_proof == block.compute_hash() and hash_proof.startswith('0' * self.DIFFICULTY) and block.prev_hash == self.chain[-1].hash
 
     def add_transaction(self, transaction: dict, timestamp: float = 0):
         unmined_block = Block(transaction=transaction,
