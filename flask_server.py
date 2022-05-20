@@ -208,7 +208,7 @@ class FlaskServer:
             if node == self.nodes.root_url:
                 continue
             try:
-                response = requests.get(node + 'chain')
+                response = requests.get(node + 'chain', timeout=5)
                 if response.status_code == 200:
                     peer_json = response.json()
 

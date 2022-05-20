@@ -28,7 +28,7 @@ class Nodes:
         new_peers = set()
         for peer in self.peers:
             try:
-                response = requests.get(f'{peer}/peers')
+                response = requests.get(f'{peer}/peers', timeout=5)
                 if response.status_code == 200:
                     peers = response.json()['peers']
                     for peer in peers:
