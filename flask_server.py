@@ -113,6 +113,7 @@ class FlaskServer:
                 if not correct_password:
                     return {"result": "Failed. Incorrect password."}, 400
 
+            del tx_data['password']
             self.chain.add_transaction(tx_data)
             self.announce()
             return {"result": "Transaction added successfully"}, 200
