@@ -35,7 +35,7 @@ class FlaskServer:
 
         @app.route("/")
         def homepage():
-            return f'we have {len(self.chain.chain)} blocks now.'
+            return f'we have {len(self.chain.chain)} blocks now.\nmy root url: {self.nodes.root_url}'
 
         @app.route('/peers', methods=['GET'])
         def get_peers():
