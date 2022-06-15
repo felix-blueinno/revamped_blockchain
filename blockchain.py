@@ -101,7 +101,9 @@ class Blockchain:
         if not os.path.exists(UNMINED_DATA_DIR):
             os.mkdir(UNMINED_DATA_DIR)
         else:
-            for filename in sorted(os.listdir(UNMINED_DATA_DIR)):
+            def sort_file(s):
+                return int(s.split('.')[0])
+            for filename in sorted(os.listdir(UNMINED_DATA_DIR), key=sort_file):
                 with open(f'{UNMINED_DATA_DIR}/{filename}') as ub_file:
                     data = json.load(ub_file)
                     block = Block(data['transaction'], data['nonce'],
@@ -114,7 +116,9 @@ class Blockchain:
             self.create_genesis_block()
 
         elif not os.listdir(CHAIN_DATA_DIR) == []:
-            all_files = sorted(os.listdir(CHAIN_DATA_DIR))
+            def sort_file(s):
+                return int(s.split('.')[0])
+            all_files = sorted(os.listdir(CHAIN_DATA_DIR), key=sort_file)
             for filename in all_files:
                 with open(f'{CHAIN_DATA_DIR}/{filename}') as json_file:
                     data = json.load(json_file)
