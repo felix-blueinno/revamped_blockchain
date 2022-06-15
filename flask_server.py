@@ -1,4 +1,5 @@
 import json
+import threading
 from flask import Flask, request
 from block import Block
 from blockchain import Blockchain
@@ -246,11 +247,12 @@ class FlaskServer:
 
                             if peer_json['length'] > len(self.chain.chain):
                                 self.chain.replace_unmined_chain(peer_ub_list)
+                                break
                             elif peer_json['length'] == len(self.chain.chain):
                                 if len(peer_ub_list) > len(self.chain.unmined_chain):
                                     self.chain.replace_unmined_chain(
                                         peer_ub_list)
-                            break
+                                    break
 
                     else:
                         # TODO: Check if both chains are identical
@@ -263,10 +265,14 @@ class FlaskServer:
         for node in self.nodes.peers:
             if node == self.nodes.root_url:
                 continue
-            try:
-                response = requests.post(node + 'update_chain')
-                if response.status_code == 200:
-                    print("Announced to node: ", node)
-            except Exception as e:
-                print("Exception: ", e)
-                self.nodes.failed_connect_peers.add(node)
+
+            def update_peer(peer: str):
+                try:
+                    response = requests.post(peer + 'update_chain', timeout=5)
+                    if response.status_code == 200:
+                        print("Announced to node: ", peer)
+                except Exception as e:
+                    print("Exception: ", e)
+                    self.nodes.failed_connect_peers.add(peer)
+
+            threading.start_new_thread(update_peer, (node, ))
