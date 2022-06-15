@@ -47,7 +47,6 @@ class Nodes:
                 print('+---------------------------------------------')
                 self.failed_connect_peers.add(peer)
 
-        self.peers = self.peers - self.failed_connect_peers
         print('+---------------------------------------------')
         print('self.failed_connect_peers: ', self.failed_connect_peers)
         print('+---------------------------------------------')
